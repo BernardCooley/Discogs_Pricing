@@ -17,14 +17,17 @@ public class Pricing {
 	private static ArrayList<Double> priceDoubleList = new ArrayList<Double>();
 	private static int backNavControl = 0;
 	private static boolean extraBackNavigation = false;
+	private static String currentURL;
+	private static boolean match;
 
 	public static void priceRecords(WebDriver driver, String url) {
 		driver.get(url);
 
 		for (int i = 0; i < CommonFunctions.getStringArrayOfElements(driver, UIMap_Discogs.releases).size(); i++) {
+			match = false;
 			backNavControl = 0;
 			extraBackNavigation = false;
-			String sSplit[] = CommonFunctions.getStringArrayOfElements(driver, UIMap_Discogs.releases).get(i + 17).split("\\r?\\n");
+			String[] sSplit = CommonFunctions.getStringArrayOfElements(driver, UIMap_Discogs.releases).get(i).split("\\r?\\n");
 			CommonFunctions.clickElement(driver, sSplit[0]);
 			System.out.println(sSplit[0]);
 			System.out.println(sSplit[1]);
@@ -37,6 +40,7 @@ public class Pricing {
 
 					if (CommonFunctions.isElementVisible(driver, UIMap_Discogs.priceColumnItems)) {
 						if (CommonFunctions.getArrayOfElements(driver, UIMap_Discogs.priceColumnItems).size() > 1) {
+							currentURL = driver.getCurrentUrl();
 							if (CommonFunctions.isElementVisible(driver, UIMap_Discogs.priceColumnHeaderChevron)) {
 								if (CommonFunctions.getAttributeValue(driver, UIMap_Discogs.priceColumnHeaderChevron, "class").contains("icon-chevron-down")) {
 									CommonFunctions.clickElement(driver, UIMap_Discogs.priceColumnHeaderTitle);
@@ -66,15 +70,53 @@ public class Pricing {
 					driver.navigate().back();
 				}
 			}
+
 			for (String str : priceStringList) {
-				priceDoubleList.add(Double.parseDouble(str.substring(1)));
-			}
-			
-			for (int j = 0; j < priceDoubleList.size()-1; j++) {
-				System.out.println(priceDoubleList.get(i));
-				if (priceDoubleList.get(i+1) - priceDoubleList.get(i) > 5.5) {
-					System.out.println("Match");
+				switch (str.charAt(0)) {
+				case '£':
+					priceDoubleList.add(Double.parseDouble(str.substring(1)));
+					break;
+				case '$':
+					priceDoubleList.add(Double.parseDouble(str.substring(1)));
+					break;
+				case '€':
+					priceDoubleList.add(Double.parseDouble(str.substring(1)));
+					break;
+				case 'A':
+					priceDoubleList.add(Double.parseDouble(str.substring(2)));
+					break;
+				case 'C':
+					priceDoubleList.add(Double.parseDouble(str.substring(3)));
+					break;
+				case '¥':
+					priceDoubleList.add(Double.parseDouble(str.substring(1)));
+					break;
+				case 'S':
+					priceDoubleList.add(Double.parseDouble(str.substring(3)));
+					break;
+				case 'N':
+					priceDoubleList.add(Double.parseDouble(str.substring(3)));
+					break;
+				case 'M':
+					priceDoubleList.add(Double.parseDouble(str.substring(3)));
+					break;
+				case 'R':
+					priceDoubleList.add(Double.parseDouble(str.substring(2)));
+					break;
+				case 'Z':
+					priceDoubleList.add(Double.parseDouble(str.substring(3)));
+					break;
 				}
+			}
+
+			for (int j = 0; j < priceDoubleList.size() - 1; j++) {
+				System.out.println(priceDoubleList.get(j));
+				if (priceDoubleList.get(j + 1) - priceDoubleList.get(j) > 10.0) {
+					match = true;
+				}
+			}
+			if (match) {
+				System.out.println("Match: " + currentURL);
 			}
 
 			System.out.println();
