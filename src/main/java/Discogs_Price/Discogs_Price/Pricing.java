@@ -4,6 +4,9 @@ import java.io.BufferedWriter;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Collections;
 
@@ -13,6 +16,7 @@ import org.openqa.selenium.WebElement;
 import org.openqa.selenium.support.ui.Select;
 
 import frameworkUtils.CommonFunctions;
+import frameworkUtils.DBConnection;
 import uI_Maps.UIMap_Discogs;
 
 public class Pricing {
@@ -38,7 +42,6 @@ public class Pricing {
 //			select.selectByVisibleText("250");
 
 			for (WebElement we : CommonFunctions.getArrayOfElements(driver, UIMap_Discogs.releases)) {
-				System.out.println(WriteToDatabase.doesUrlExist(we.findElement(By.cssSelector("h4 > a")).getAttribute("href")));
 				if (!WriteToDatabase.doesUrlExist(we.findElement(By.cssSelector("h4 > a")).getAttribute("href"))) {
 					releaseUrlList.add(we.findElement(By.cssSelector("h4 > a")).getAttribute("href"));
 				}
@@ -47,7 +50,7 @@ public class Pricing {
 			for (String s : releaseUrlList) {
 				driver.get(s);
 				
-				WriteToDatabase.writeToDatabase("url", s);
+				WriteToDatabase.writeNewRecordToDatabase(s);
 
 				if (CommonFunctions.isElementVisible(driver, UIMap_Discogs.buyBtnSection)) {
 					if (CommonFunctions.getElement(driver, UIMap_Discogs.buyBtnSection)
@@ -98,7 +101,21 @@ public class Pricing {
 //							out.println(s);
 //						} catch (IOException e) {
 //						}
-						WriteToDatabase.writeToDatabase("matched", "Yes");
+//						WriteToDatabase.updateDatabase(s);
+						
+						
+						Connection con = DBConnection.dbConnector();
+						PreparedStatement pst = null;
+						
+						String sqlUpdate = "UPDATE matches SET matched='Yes' WHERE url=?";
+						
+						try {
+							pst = con.prepareStatement(sqlUpdate);
+							pst.setString(1, s);
+							pst.executeUpdate();
+						} catch (SQLException e) {
+						}
+						
 						System.out.println("Match: " + s);
 					}
 				}

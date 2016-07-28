@@ -28,20 +28,24 @@ public class WriteToDatabase {
 		return false;
 	}
 	
-	public static void writeToDatabase(String columnName, String value) {
-		String sqlInsert = "INSERT INTO matches (?) VALUES (?)";
-		
+	public static void writeNewRecordToDatabase(String value) {
+		String sqlInsert = "INSERT INTO matches (url) VALUES (?)";
 		try {
 			pst = con.prepareStatement(sqlInsert);
-			pst.setString(1, columnName);
-			pst.setString(2, value);
+			pst.setString(1, value);
 			pst.executeUpdate();
 		} catch (SQLException e) {
 		}
 	}
 	
-	
-	
-	
-	
+	public static void updateDatabase(String value) {
+		String sqlUpdate = "UPDATE matches SET matched='Yes' WHERE url=?";
+		
+		try {
+			pst = con.prepareStatement(sqlUpdate);
+			pst.setString(1, value);
+			pst.executeUpdate();
+		} catch (SQLException e) {
+		}
+	}
 }
