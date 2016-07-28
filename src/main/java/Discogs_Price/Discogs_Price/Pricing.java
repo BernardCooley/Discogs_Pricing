@@ -1,127 +1,126 @@
 package Discogs_Price.Discogs_Price;
 
+import java.io.BufferedWriter;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.PrintWriter;
 import java.util.ArrayList;
+import java.util.Collections;
 
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
+import org.openqa.selenium.support.ui.Select;
 
 import frameworkUtils.CommonFunctions;
 import uI_Maps.UIMap_Discogs;
 
 public class Pricing {
 
-	private static ArrayList<ArrayList<String>> tableContents;
-	private static ArrayList<ArrayList<WebElement>> tableElements;
 	private static ArrayList<String> priceStringList = new ArrayList<String>();
 	private static ArrayList<Double> priceDoubleList = new ArrayList<Double>();
-	private static int backNavControl = 0;
-	private static boolean extraBackNavigation = false;
-	private static String currentURL;
+	private static ArrayList<String> releaseUrlList = new ArrayList<String>();
 	private static boolean match;
+	private static double euroConversion = 0.841331;
+	private static double priceLimit = 20.00;
+	private static int pageCounter = 0;
 
 	public static void priceRecords(WebDriver driver, String url) {
-		driver.get(url);
+		for (int i = 0; i < 50; i++) {
+			driver.get(url);
 
-		for (int i = 0; i < CommonFunctions.getStringArrayOfElements(driver, UIMap_Discogs.releases).size(); i++) {
-			match = false;
-			backNavControl = 0;
-			extraBackNavigation = false;
-			String[] sSplit = CommonFunctions.getStringArrayOfElements(driver, UIMap_Discogs.releases).get(i).split("\\r?\\n");
-			CommonFunctions.clickElement(driver, sSplit[0]);
-			System.out.println(sSplit[0]);
-			System.out.println(sSplit[1]);
+			for (int j = 0; j < pageCounter; j++) {
+				CommonFunctions.clickElement(driver, UIMap_Discogs.nextPageBtn);
+				CommonFunctions.customWait(driver, 1);
+			}
 
-			if (CommonFunctions.isElementVisible(driver, UIMap_Discogs.buyVinyllBtn)) {
-				if (CommonFunctions.getElementText(driver, UIMap_Discogs.buyVinyllBtn).equals("Vinyl and CD")
-						|| CommonFunctions.getElementText(driver, UIMap_Discogs.buyVinyllBtn).equals("Buy Vinyl")) {
+			Select select = new Select(driver.findElement(UIMap_Discogs.itemsPerPageLimitDropdown));
+//			select.selectByVisibleText("250");
 
-					CommonFunctions.clickElement(driver, UIMap_Discogs.buyVinyllBtn);
+			for (WebElement we : CommonFunctions.getArrayOfElements(driver, UIMap_Discogs.releases)) {
+				System.out.println(WriteToDatabase.doesUrlExist(we.findElement(By.cssSelector("h4 > a")).getAttribute("href")));
+				if (!WriteToDatabase.doesUrlExist(we.findElement(By.cssSelector("h4 > a")).getAttribute("href"))) {
+					releaseUrlList.add(we.findElement(By.cssSelector("h4 > a")).getAttribute("href"));
+				}
+			}
 
-					if (CommonFunctions.isElementVisible(driver, UIMap_Discogs.priceColumnItems)) {
-						if (CommonFunctions.getArrayOfElements(driver, UIMap_Discogs.priceColumnItems).size() > 1) {
-							currentURL = driver.getCurrentUrl();
-							if (CommonFunctions.isElementVisible(driver, UIMap_Discogs.priceColumnHeaderChevron)) {
-								if (CommonFunctions.getAttributeValue(driver, UIMap_Discogs.priceColumnHeaderChevron, "class").contains("icon-chevron-down")) {
-									CommonFunctions.clickElement(driver, UIMap_Discogs.priceColumnHeaderTitle);
-									CommonFunctions.customWait(driver, 1);
-									backNavControl++;
+			for (String s : releaseUrlList) {
+				driver.get(s);
+				
+				WriteToDatabase.writeToDatabase("url", s);
+
+				if (CommonFunctions.isElementVisible(driver, UIMap_Discogs.buyBtnSection)) {
+					if (CommonFunctions.getElement(driver, UIMap_Discogs.buyBtnSection)
+							.findElement(By.cssSelector("div > a")).isDisplayed()) {
+						if (CommonFunctions.getElement(driver, UIMap_Discogs.buyBtnSection)
+								.findElement(By.cssSelector("div > a")).getText().equals("Vinyl and CD")
+								|| CommonFunctions.getElement(driver, UIMap_Discogs.buyBtnSection)
+										.findElement(By.cssSelector("div > a")).getText().equals("Buy Vinyl")) {
+
+							CommonFunctions.clickElement(driver, UIMap_Discogs.buyVinyllBtn);
+
+							if (CommonFunctions.isElementVisible(driver, UIMap_Discogs.priceColumnItems)) {
+								if (CommonFunctions.getArrayOfElements(driver, UIMap_Discogs.priceColumnItems)
+										.size() > 1) {
+									for (WebElement we : CommonFunctions.getArrayOfElements(driver,
+											UIMap_Discogs.priceColumnItems)) {
+										priceStringList.add(we.findElement(By.cssSelector("span")).getText());
+									}
 								}
-							} else {
-								CommonFunctions.clickElement(driver, UIMap_Discogs.priceColumnHeaderTitle);
-								CommonFunctions.customWait(driver, 1);
-								backNavControl++;
-								if (CommonFunctions.getAttributeValue(driver, UIMap_Discogs.priceColumnHeaderChevron, "class").contains("icon-chevron-down")) {
-									CommonFunctions.clickElement(driver, UIMap_Discogs.priceColumnHeaderTitle);
-									CommonFunctions.customWait(driver, 1);
-									backNavControl++;
-								}
-							}
-							for (WebElement we : CommonFunctions.getArrayOfElements(driver, UIMap_Discogs.priceColumnItems)) {
-								priceStringList.add(we.findElement(By.cssSelector("span")).getText());
 							}
 						}
-
 					}
-					for (int j = 0; j < backNavControl; j++) {
-						driver.navigate().back();
-						CommonFunctions.customWait(driver, 1);
+					for (String str : priceStringList) {
+						switch (str.charAt(0)) {
+						case '£':
+							priceDoubleList.add(round(Double.parseDouble(str.substring(1)), 2));
+							break;
+						case '€':
+							priceDoubleList.add(round(Double.parseDouble(str.substring(1)) * euroConversion, 2));
+							break;
+						}
 					}
-					driver.navigate().back();
+
+					Collections.sort(priceDoubleList);
+
+					if (priceDoubleList.size() > 0) {
+						for (int j = 0; j < 1; j++) {
+							if (priceDoubleList.get(j + 1) - priceDoubleList.get(j) > priceLimit) {
+								match = true;
+							}
+						}
+					}
+					System.out.println((releaseUrlList.indexOf(s) + 1) + " of " + releaseUrlList.size());
+					if (match) {
+//						try (FileWriter fw = new FileWriter("Matches.txt", true);
+//								BufferedWriter bw = new BufferedWriter(fw);
+//								PrintWriter out = new PrintWriter(bw)) {
+//							out.println(s);
+//						} catch (IOException e) {
+//						}
+						WriteToDatabase.writeToDatabase("matched", "Yes");
+						System.out.println("Match: " + s);
+					}
 				}
-			}
 
-			for (String str : priceStringList) {
-				switch (str.charAt(0)) {
-				case '£':
-					priceDoubleList.add(Double.parseDouble(str.substring(1)));
-					break;
-				case '$':
-					priceDoubleList.add(Double.parseDouble(str.substring(1)));
-					break;
-				case '€':
-					priceDoubleList.add(Double.parseDouble(str.substring(1)));
-					break;
-				case 'A':
-					priceDoubleList.add(Double.parseDouble(str.substring(2)));
-					break;
-				case 'C':
-					priceDoubleList.add(Double.parseDouble(str.substring(3)));
-					break;
-				case '¥':
-					priceDoubleList.add(Double.parseDouble(str.substring(1)));
-					break;
-				case 'S':
-					priceDoubleList.add(Double.parseDouble(str.substring(3)));
-					break;
-				case 'N':
-					priceDoubleList.add(Double.parseDouble(str.substring(3)));
-					break;
-				case 'M':
-					priceDoubleList.add(Double.parseDouble(str.substring(3)));
-					break;
-				case 'R':
-					priceDoubleList.add(Double.parseDouble(str.substring(2)));
-					break;
-				case 'Z':
-					priceDoubleList.add(Double.parseDouble(str.substring(3)));
-					break;
-				}
+				priceStringList.clear();
+				priceDoubleList.clear();
+				match = false;
 			}
-
-			for (int j = 0; j < priceDoubleList.size() - 1; j++) {
-				System.out.println(priceDoubleList.get(j));
-				if (priceDoubleList.get(j + 1) - priceDoubleList.get(j) > 10.0) {
-					match = true;
-				}
-			}
-			if (match) {
-				System.out.println("Match: " + currentURL);
-			}
-
-			System.out.println();
-
-			driver.navigate().back();
+			System.out.println("-------------------------------------------------------------------------------");
+			pageCounter++;
+			releaseUrlList.clear();
 		}
+
+	}
+
+	public static double round(double value, int places) {
+		if (places < 0)
+			throw new IllegalArgumentException();
+
+		long factor = (long) Math.pow(10, places);
+		value = value * factor;
+		long tmp = Math.round(value);
+		return (double) tmp / factor;
 	}
 }

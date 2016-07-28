@@ -7,11 +7,11 @@ public class Main {
 
 	public static void main(String[] args) {
 		
-		String browser = "Chrome";
-		String url = "https://www.discogs.com/search/?sort=title%2Casc&format_exact=Vinyl&format_exact[]=Vinyl&format_exact[]=12%22&page=16&style_exact=Techno";
+		String browser = "Firefox";
+		String url = "https://www.discogs.com/search/?sort=title%2Casc&format_exact=12%22&format_exact%5B%5D=Vinyl&format_exact%5B%5D=12%22&layout=big&country_exact=UK";
 		
 		BrowserLauncher bL = new BrowserLauncher();
-    	WebDriver driver = bL.lauchBrowser(browser);
+    	WebDriver driver = bL.launchBrowser(browser);
     	
     	Pricing.priceRecords(driver, url);
     	
