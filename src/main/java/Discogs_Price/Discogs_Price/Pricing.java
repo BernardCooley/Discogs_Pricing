@@ -23,7 +23,7 @@ public class Pricing {
 	private static ArrayList<String> releaseUrlList = new ArrayList<String>();
 	private static boolean match;
 	private static double euroConversion = 0.841331;
-	private static double priceLimit = 20.00;
+	private static double priceLimit = 15.00;
 	private static int pageCounter = 0;
 	private static List<WebElement> releasesList;
 	private static Connection con = DBConnection.dbConnector();
@@ -143,6 +143,29 @@ public class Pricing {
 			match = false;
 		}
 
+	}
+	
+	public static void setAllToReviewed() {
+		String sqlUpdate = "UPDATE matches SET reviewed='Yes' WHERE matched='Yes'";
+
+		try {
+			pst = con.prepareStatement(sqlUpdate);
+			pst.executeUpdate();
+		} catch (SQLException e) {
+		}
+	}
+	
+	public static void returnAllToBeReviewed() {
+		String sqlSelect = "SELECT url FROM matches WHERE matched='Yes' AND reviewed IS NULL";
+		try {
+			pst = con.prepareStatement(sqlSelect);
+			ResultSet rs = pst.executeQuery();
+			while(rs.next()) {
+				System.out.println(rs.getString(1));
+			}
+		} catch (Exception e) {
+			// TODO: handle exception
+		}
 	}
 
 	public static double round(double value, int places) {
