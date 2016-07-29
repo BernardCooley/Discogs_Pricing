@@ -198,6 +198,16 @@ public class CommonFunctions {
 		Assert.assertTrue(isElementVisible(driver, element), "Element " + element + " not found");
 		return driver.findElements(element).get(0).getAttribute(attributeName);
 	}
+	
+	public static List<String> getStringArrayOfAttributeValues(WebDriver driver, By element, String attributeName, String extension) {
+		Assert.assertTrue(isElementVisible(driver, element), "Element " + element + " not found");
+		List<String> stringArrayOfAttributeValues = new ArrayList<String>();
+		
+		for (WebElement we : driver.findElements(element)) {
+			stringArrayOfAttributeValues.add(we.findElement(By.cssSelector(extension)).getAttribute(attributeName));
+		}
+		return stringArrayOfAttributeValues;
+	}
 
 	public static ArrayList<ArrayList<String>> getTableContents(WebDriver driver, By table) {
 		ArrayList<ArrayList<String>> tableArray = new ArrayList<ArrayList<String>>();

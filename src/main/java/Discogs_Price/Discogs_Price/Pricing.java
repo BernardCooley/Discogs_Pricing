@@ -26,9 +26,12 @@ public class Pricing {
 	private static double priceLimit = 15.00;
 	private static int pageCounter = 0;
 	private static List<WebElement> releasesList;
+	private static List<String> releasesStringList;
 	private static Connection con = DBConnection.dbConnector();
 	private static PreparedStatement pst = null;
 	private static String currentUrl;
+	private static ArrayList<String> databaseUrlList = new ArrayList<String>();
+	private static ArrayList<String> removeList = new ArrayList<String>();
 	
 	public static void populateDatabase(WebDriver driver, String url) {
 		driver.get(url);
@@ -37,21 +40,56 @@ public class Pricing {
 		String total = split[4];
 		total = total.replace(",", "");
 
+//		String sqlSelect = "SELECT url FROM matches";
+//		try {
+//			pst = con.prepareStatement(sqlSelect);
+//			ResultSet rs = pst.executeQuery();
+//			
+//			while(rs.next()) {
+//				databaseUrlList.add(rs.getString(1));
+//			}
+//		} catch (SQLException e1) {
+//		}
+//		releasesStringList = CommonFunctions.getStringArrayOfAttributeValues(driver, UIMap_Discogs.releases, "href", "h4 > a");
+//		
+//		doesUrlsExist(databaseList, siteList);
+		
+		
+		
+		
 		for (int i = 0; i < Integer.parseInt(total) / 50; i++) {
+			System.out.println();
 			System.out.println("Scanning page " + (i+1) + " of " + (Integer.parseInt(total) / 50));
-			releasesList = CommonFunctions.getArrayOfElements(driver, UIMap_Discogs.releases);
-			for (WebElement we : releasesList) {
-				currentUrl = we.findElement(By.cssSelector("h4 > a")).getAttribute("href");
-				if (!WriteToDatabase.doesUrlExist(currentUrl)) {
-					String sqlInsert = "INSERT INTO matches (url,matched,checked) VALUES (?,'N/A','No')";
+			
+			releasesStringList = CommonFunctions.getStringArrayOfAttributeValues(driver, UIMap_Discogs.releases, "href", "h4 > a");
+			
+			String sqlInsert = "INSERT INTO matches (url, matched, checked, reviewed) VALUES (?,'N/A','No','No')";
+			
+			for (String s : releasesStringList) {
+				System.out.println(releasesStringList.indexOf(s) + "release of " + releasesStringList.size());
+				if (!WriteToDatabase.doesUrlExist(s)) {
 					try {
 						pst = con.prepareStatement(sqlInsert);
-						pst.setString(1, currentUrl);
+						pst.setString(1, s);
 						pst.executeUpdate();
 					} catch (SQLException e) {
 					}
 				}
 			}
+			
+//			for (WebElement we : releasesList) {
+//				System.out.println(releasesList.indexOf(we) + " releases of " + releasesList.size());
+//				currentUrl = we.findElement(By.cssSelector("h4 > a")).getAttribute("href");
+//				if (!WriteToDatabase.doesUrlExist(currentUrl)) {
+//					String sqlInsert = "INSERT INTO matches (url,matched,checked) VALUES (?,'N/A','No')";
+//					try {
+//						pst = con.prepareStatement(sqlInsert);
+//						pst.setString(1, currentUrl);
+//						pst.executeUpdate();
+//					} catch (SQLException e) {
+//					}
+//				}
+//			}
 			CommonFunctions.clickElement(driver, UIMap_Discogs.nextPageBtn);
 			CommonFunctions.customWait(driver, 1);
 		}
@@ -176,5 +214,24 @@ public class Pricing {
 		value = value * factor;
 		long tmp = Math.round(value);
 		return (double) tmp / factor;
+	}
+	
+	public static ArrayList<String> doesUrlsExist(ArrayList<String> databaseList, ArrayList<String> siteList) {
+		
+		ArrayList<String> removeList = new ArrayList<String>();
+		ArrayList<String> siteList1 = siteList;
+		
+		for (String s : databaseList) {
+			for (String s1 : siteList1) {
+				if (s1.equals(s)) {
+					removeList.add(s);
+				}
+			}
+		}
+		
+		
+		
+		
+		return removeList;
 	}
 }
