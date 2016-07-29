@@ -27,8 +27,6 @@ public class Pricing {
 	private static int pageCounter = 0;
 	private static List<WebElement> releasesList;
 	private static List<String> releasesStringList;
-	private static Connection con = DBConnection.dbConnector();
-	private static PreparedStatement pst = null;
 	private static String currentUrl;
 	private static ArrayList<String> databaseUrlList = new ArrayList<String>();
 	private static ArrayList<String> removeList = new ArrayList<String>();
@@ -63,7 +61,10 @@ public class Pricing {
 			
 			releasesStringList = CommonFunctions.getStringArrayOfAttributeValues(driver, UIMap_Discogs.releases, "href", "h4 > a");
 			
-			String sqlInsert = "INSERT INTO matches (url, matched, checked, reviewed) VALUES (?,'N/A','No','No')";
+			Connection con = DBConnection.dbConnector();
+			PreparedStatement pst = null;
+			
+			String sqlInsert = "INSERT INTO matches VALUES (?,'N/A','No','No')";
 			
 			for (String s : releasesStringList) {
 				System.out.println(releasesStringList.indexOf(s) + "release of " + releasesStringList.size());
@@ -96,6 +97,8 @@ public class Pricing {
 	}
 	
 	public static void priceRecords(WebDriver driver) {
+		Connection con = DBConnection.dbConnector();
+		PreparedStatement pst = null;
 		String sqlSelect = "SELECT * FROM matches";
 		try {
 			pst = con.prepareStatement(sqlSelect);
@@ -184,6 +187,8 @@ public class Pricing {
 	}
 	
 	public static void setAllToReviewed() {
+		Connection con = DBConnection.dbConnector();
+		PreparedStatement pst = null;
 		String sqlUpdate = "UPDATE matches SET reviewed='Yes' WHERE matched='Yes'";
 
 		try {
@@ -194,6 +199,8 @@ public class Pricing {
 	}
 	
 	public static void returnAllToBeReviewed() {
+		Connection con = DBConnection.dbConnector();
+		PreparedStatement pst = null;
 		String sqlSelect = "SELECT url FROM matches WHERE matched='Yes' AND reviewed IS NULL";
 		try {
 			pst = con.prepareStatement(sqlSelect);
