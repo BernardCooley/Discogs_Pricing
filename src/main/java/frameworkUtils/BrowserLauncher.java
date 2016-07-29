@@ -22,10 +22,10 @@ public class BrowserLauncher {
 	
 	public WebDriver launchBrowser(String BrowserName) {
 		if(BrowserName.equalsIgnoreCase("Firefox")) {
-			FirefoxProfile p = new FirefoxProfile(new File("C:\\Users\\Bernard\\AppData\\Roaming\\Mozilla\\Firefox\\Profiles\\0g0i8bia.default"));
-			p.setPreference("permissions.default.image", 2);
+//			FirefoxProfile p = new FirefoxProfile(new File("C:\\Users\\Bernard\\AppData\\Roaming\\Mozilla\\Firefox\\Profiles\\0g0i8bia.default"));
+//			p.setPreference("permissions.default.image", 2);
 //			p.setPreference("permissions.default.stylesheet", 2);
-			driver = new FirefoxDriver(p);
+			driver = new FirefoxDriver();
 			driver.manage().window().maximize();
 		} else if(BrowserName.equalsIgnoreCase("IE")) {
 			DesiredCapabilities capabilities = DesiredCapabilities.internetExplorer();

@@ -13,7 +13,8 @@ public class Main {
 		BrowserLauncher bL = new BrowserLauncher();
     	WebDriver driver = bL.launchBrowser(browser);
     	
-    	Pricing.priceRecords(driver, url);
+    	Pricing.populateDatabase(driver, url);
+    	Pricing.priceRecords(driver);
     	
 	}
 

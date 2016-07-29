@@ -14,4 +14,5 @@ public class UIMap_Discogs {
 	public static final By sellerSortBtn = By.cssSelector("th.seller_info_header a > span");
 	public static final By itemsPerPageLimitDropdown = By.cssSelector("select#limit_bottom");
 	public static final By nextPageBtn = By.cssSelector("a.pagination_next");
+	public static final By resultsTotal = By.cssSelector("strong.pagination_total");
 }

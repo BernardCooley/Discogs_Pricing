@@ -19,8 +19,8 @@ public class DBConnection {
 			} else if(oS.equalsIgnoreCase("Windows 10")) {
 				d = "\\";
 			}
-			Connection con = DriverManager.getConnection("jdbc:sqlite:C:"+d+"Eclipse Workspace Git"+d+"Discogs_Pricing"+d+"matches.sqlite");
-			System.out.println("DB Connection successful");
+			Connection con = DriverManager.getConnection("jdbc:sqlite:matches.sqlite");
+//			System.out.println("DB Connection successful");
 			return con;
 			
 		} catch(Exception e) {
