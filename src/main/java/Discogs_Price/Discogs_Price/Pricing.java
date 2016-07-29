@@ -30,7 +30,9 @@ public class Pricing {
 	private static String currentUrl;
 	private static ArrayList<String> databaseUrlList = new ArrayList<String>();
 	private static ArrayList<String> removeList = new ArrayList<String>();
-	
+	private static Connection con = DBConnection.dbConnector();
+	private static PreparedStatement pst = null;
+
 	public static void populateDatabase(WebDriver driver, String url) {
 		driver.get(url);
 
@@ -38,73 +40,30 @@ public class Pricing {
 		String total = split[4];
 		total = total.replace(",", "");
 
-//		String sqlSelect = "SELECT url FROM matches";
-//		try {
-//			pst = con.prepareStatement(sqlSelect);
-//			ResultSet rs = pst.executeQuery();
-//			
-//			while(rs.next()) {
-//				databaseUrlList.add(rs.getString(1));
-//			}
-//		} catch (SQLException e1) {
-//		}
-//		releasesStringList = CommonFunctions.getStringArrayOfAttributeValues(driver, UIMap_Discogs.releases, "href", "h4 > a");
-//		
-//		doesUrlsExist(databaseList, siteList);
-		
-		
-		
-		
 		for (int i = 0; i < Integer.parseInt(total) / 50; i++) {
 			System.out.println();
-			System.out.println("Scanning page " + (i+1) + " of " + (Integer.parseInt(total) / 50));
-			
-			releasesStringList = CommonFunctions.getStringArrayOfAttributeValues(driver, UIMap_Discogs.releases, "href", "h4 > a");
-			
-			Connection con = DBConnection.dbConnector();
-			PreparedStatement pst = null;
-			
-			String sqlInsert = "INSERT INTO matches VALUES (?,'N/A','No','No')";
-			
+			System.out.println("Scanning page " + (i + 1) + " of " + (Integer.parseInt(total) / 50));
+
+			releasesStringList = CommonFunctions.getStringArrayOfAttributeValues(driver, UIMap_Discogs.releases, "href",
+					"h4 > a");
 			for (String s : releasesStringList) {
-				System.out.println(releasesStringList.indexOf(s) + "release of " + releasesStringList.size());
+				System.out.println(releasesStringList.indexOf(s) + " release of " + releasesStringList.size());
 				if (!WriteToDatabase.doesUrlExist(s)) {
-					try {
-						pst = con.prepareStatement(sqlInsert);
-						pst.setString(1, s);
-						pst.executeUpdate();
-					} catch (SQLException e) {
-					}
+					WriteToDatabase.writeNewRecordToDatabase(s);
 				}
 			}
-			
-//			for (WebElement we : releasesList) {
-//				System.out.println(releasesList.indexOf(we) + " releases of " + releasesList.size());
-//				currentUrl = we.findElement(By.cssSelector("h4 > a")).getAttribute("href");
-//				if (!WriteToDatabase.doesUrlExist(currentUrl)) {
-//					String sqlInsert = "INSERT INTO matches (url,matched,checked) VALUES (?,'N/A','No')";
-//					try {
-//						pst = con.prepareStatement(sqlInsert);
-//						pst.setString(1, currentUrl);
-//						pst.executeUpdate();
-//					} catch (SQLException e) {
-//					}
-//				}
-//			}
 			CommonFunctions.clickElement(driver, UIMap_Discogs.nextPageBtn);
 			CommonFunctions.customWait(driver, 1);
 		}
 	}
-	
+
 	public static void priceRecords(WebDriver driver) {
-		Connection con = DBConnection.dbConnector();
-		PreparedStatement pst = null;
 		String sqlSelect = "SELECT * FROM matches";
 		try {
 			pst = con.prepareStatement(sqlSelect);
 			ResultSet rs = pst.executeQuery();
-			
-			while(rs.next()) {
+
+			while (rs.next()) {
 				if (rs.getString(3).equals("No")) {
 					releaseUrlList.add(rs.getString(1));
 				}
@@ -113,20 +72,28 @@ public class Pricing {
 		}
 
 		for (String s : releaseUrlList) {
+			
+			if (releaseUrlList.indexOf(s) % 2000 == 0) {
+				CommonFunctions.customWait(driver, 400);
+			}
+			
 			System.out.println("Scanning release " + releaseUrlList.indexOf(s) + " of " + releaseUrlList.size());
 			driver.get(s);
 
 			if (CommonFunctions.isElementVisible(driver, UIMap_Discogs.buyBtnSection)) {
-				if (CommonFunctions.getElement(driver, UIMap_Discogs.buyBtnSection).findElement(By.cssSelector("div > a")).isDisplayed()) {
-					if (CommonFunctions.getElement(driver, UIMap_Discogs.buyBtnSection).findElement(By.cssSelector("div > a")).getText().equals("Vinyl and CD")
-							|| CommonFunctions.getElement(driver, UIMap_Discogs.buyBtnSection).findElement(By.cssSelector("div > a")).getText()
-									.equals("Buy Vinyl")) {
+				if (CommonFunctions.getElement(driver, UIMap_Discogs.buyBtnSection)
+						.findElement(By.cssSelector("div > a")).isDisplayed()) {
+					if (CommonFunctions.getElement(driver, UIMap_Discogs.buyBtnSection)
+							.findElement(By.cssSelector("div > a")).getText().equals("Vinyl and CD")
+							|| CommonFunctions.getElement(driver, UIMap_Discogs.buyBtnSection)
+									.findElement(By.cssSelector("div > a")).getText().equals("Buy Vinyl")) {
 
 						CommonFunctions.clickElement(driver, UIMap_Discogs.buyVinyllBtn);
 
 						if (CommonFunctions.isElementVisible(driver, UIMap_Discogs.priceColumnItems)) {
 							if (CommonFunctions.getArrayOfElements(driver, UIMap_Discogs.priceColumnItems).size() > 1) {
-								for (WebElement we : CommonFunctions.getArrayOfElements(driver, UIMap_Discogs.priceColumnItems)) {
+								for (WebElement we : CommonFunctions.getArrayOfElements(driver,
+										UIMap_Discogs.priceColumnItems)) {
 									priceStringList.add(we.findElement(By.cssSelector("span")).getText());
 								}
 							}
@@ -168,7 +135,7 @@ public class Pricing {
 
 					System.out.println("Match: " + s);
 				}
-				
+
 				String sqlUpdate = "UPDATE matches SET checked='Yes' WHERE url=?";
 
 				try {
@@ -177,7 +144,7 @@ public class Pricing {
 					pst.executeUpdate();
 				} catch (SQLException e) {
 				}
-				
+
 			}
 			priceStringList.clear();
 			priceDoubleList.clear();
@@ -185,10 +152,8 @@ public class Pricing {
 		}
 
 	}
-	
+
 	public static void setAllToReviewed() {
-		Connection con = DBConnection.dbConnector();
-		PreparedStatement pst = null;
 		String sqlUpdate = "UPDATE matches SET reviewed='Yes' WHERE matched='Yes'";
 
 		try {
@@ -197,19 +162,16 @@ public class Pricing {
 		} catch (SQLException e) {
 		}
 	}
-	
+
 	public static void returnAllToBeReviewed() {
-		Connection con = DBConnection.dbConnector();
-		PreparedStatement pst = null;
-		String sqlSelect = "SELECT url FROM matches WHERE matched='Yes' AND reviewed IS NULL";
+		String sqlSelect = "SELECT url FROM matches WHERE matched='Yes' AND reviewed='No'";
 		try {
 			pst = con.prepareStatement(sqlSelect);
 			ResultSet rs = pst.executeQuery();
-			while(rs.next()) {
+			while (rs.next()) {
 				System.out.println(rs.getString(1));
 			}
 		} catch (Exception e) {
-			// TODO: handle exception
 		}
 	}
 
@@ -222,12 +184,12 @@ public class Pricing {
 		long tmp = Math.round(value);
 		return (double) tmp / factor;
 	}
-	
+
 	public static ArrayList<String> doesUrlsExist(ArrayList<String> databaseList, ArrayList<String> siteList) {
-		
+
 		ArrayList<String> removeList = new ArrayList<String>();
 		ArrayList<String> siteList1 = siteList;
-		
+
 		for (String s : databaseList) {
 			for (String s1 : siteList1) {
 				if (s1.equals(s)) {
@@ -235,10 +197,7 @@ public class Pricing {
 				}
 			}
 		}
-		
-		
-		
-		
+
 		return removeList;
 	}
 }

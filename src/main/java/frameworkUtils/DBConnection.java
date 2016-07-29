@@ -10,15 +10,8 @@ public class DBConnection {
 	
 	public static Connection dbConnector() {
 		try {
+			DriverManager.registerDriver(new org.sqlite.JDBC());
 			Class.forName("org.sqlite.JDBC");
-			String d = null;
-			String oS = System.getProperty("os.name");
-//			System.out.println(oS);
-			if (oS.contains("x")) {
-				d = "/";
-			} else if(oS.equalsIgnoreCase("Windows 10")) {
-				d = "\\";
-			}
 			Connection con = DriverManager.getConnection("jdbc:sqlite:matches.sqlite");
 //			System.out.println("DB Connection successful");
 			return con;

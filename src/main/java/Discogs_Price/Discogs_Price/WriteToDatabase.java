@@ -4,6 +4,7 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.ArrayList;
 
 import frameworkUtils.DBConnection;
 
@@ -29,7 +30,7 @@ public class WriteToDatabase {
 	}
 	
 	public static void writeNewRecordToDatabase(String value) {
-		String sqlInsert = "INSERT INTO matches (url) VALUES (?)";
+		String sqlInsert = "INSERT INTO matches VALUES (?,'N/A','No','No')";
 		try {
 			pst = con.prepareStatement(sqlInsert);
 			pst.setString(1, value);
@@ -48,4 +49,33 @@ public class WriteToDatabase {
 		} catch (SQLException e) {
 		}
 	}
+	
+	public static ArrayList<String> getOneColumnFromDatabase(String columnName, ArrayList<String> conditionsList) {
+		ArrayList<String> columnContents = new ArrayList<String>();
+		
+		StringBuilder sb = new StringBuilder();
+		sb.append("SELECT ? from matches WHERE ");
+		
+		
+		
+		
+		String sqlSelect = "SELECT ? from matches";
+		try {
+			pst = con.prepareStatement(sqlSelect);
+			ResultSet rs = pst.executeQuery();
+			
+			while(rs.next()) {
+				columnContents.add(rs.getString(1));
+			}
+		} catch (SQLException e) {
+		}
+		return columnContents;
+	}
+	
+	
+	
+	
+	
+	
+	
 }
