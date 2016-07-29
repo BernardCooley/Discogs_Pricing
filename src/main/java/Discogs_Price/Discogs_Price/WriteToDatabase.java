@@ -49,33 +49,4 @@ public class WriteToDatabase {
 		} catch (SQLException e) {
 		}
 	}
-	
-	public static ArrayList<String> getOneColumnFromDatabase(String columnName, ArrayList<String> conditionsList) {
-		ArrayList<String> columnContents = new ArrayList<String>();
-		
-		StringBuilder sb = new StringBuilder();
-		sb.append("SELECT ? from matches WHERE ");
-		
-		
-		
-		
-		String sqlSelect = "SELECT ? from matches";
-		try {
-			pst = con.prepareStatement(sqlSelect);
-			ResultSet rs = pst.executeQuery();
-			
-			while(rs.next()) {
-				columnContents.add(rs.getString(1));
-			}
-		} catch (SQLException e) {
-		}
-		return columnContents;
-	}
-	
-	
-	
-	
-	
-	
-	
 }

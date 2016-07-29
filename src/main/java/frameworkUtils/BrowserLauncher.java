@@ -17,7 +17,6 @@ public class BrowserLauncher {
 	private WebDriver driver = null;
 	
 	public BrowserLauncher() {
-		
 	}
 	
 	public WebDriver launchBrowser(String BrowserName) {
@@ -55,9 +54,6 @@ public class BrowserLauncher {
 //			driver = new PhantomJSDriver(capabilities);
 //			driver.manage().timeouts().implicitlyWait(20, TimeUnit.SECONDS);
 //		}
-		
         return driver;
     }
-	
-	
 }

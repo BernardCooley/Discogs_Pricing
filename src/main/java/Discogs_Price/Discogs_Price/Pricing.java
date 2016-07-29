@@ -73,7 +73,7 @@ public class Pricing {
 
 		for (String s : releaseUrlList) {
 			
-			if (releaseUrlList.indexOf(s) % 2000 == 0) {
+			if (releaseUrlList.indexOf(s) % 1000 == 0) {
 				CommonFunctions.customWait(driver, 400);
 			}
 			
